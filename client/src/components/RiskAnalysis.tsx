@@ -19,29 +19,40 @@ export default function RiskAnalysis({ data }: RiskAnalysisProps) {
     return 'CLEAR';
   };
 
-  // Mock waypoints - replace with actual data from your notebook
-  const waypoints = [
-    { location: 'MP Nagar', risk: 2.93 },
-    { location: 'New Market', risk: 3.40 },
-    { location: 'Kolar', risk: 3.82 },
-    { location: 'Airport', risk: 1.65 },
-  ];
+  // Handle both mock data and real backend data
+  let waypoints: any[] = [];
+
+  // Check if data has risk_60min (real backend format)
+  if (data.risk_60min) {
+    waypoints = Object.entries(data.risk_60min).map(([location, risk]: any) => ({
+      location,
+      risk: typeof risk === 'object' ? risk.risk_60min : risk,
+    }));
+  } 
+  // Fallback to mock data format
+  else if (data.waypoints) {
+    waypoints = data.waypoints;
+  }
 
   return (
     <div className="bg-white rounded-lg border border-cyan-200 p-6 shadow-sm">
-      <h3 className="text-lg font-bold text-gray-800 mb-4">Risk Scores Along Route</h3>
+      <h3 className="text-lg font-bold text-gray-800 mb-4">Risk Scores Along Route (60-min forecast)</h3>
       <div className="space-y-3">
-        {waypoints.map((wp, idx) => (
-          <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div>
-              <p className="font-semibold text-gray-800">{wp.location}</p>
-              <p className="text-sm text-gray-600">Waypoint {idx + 1}</p>
+        {waypoints.length > 0 ? (
+          waypoints.map((wp, idx) => (
+            <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div>
+                <p className="font-semibold text-gray-800">{wp.location}</p>
+                <p className="text-sm text-gray-600">Waypoint {idx + 1}</p>
+              </div>
+              <div className={`px-4 py-2 rounded-lg font-bold border ${getRiskColor(wp.risk)}`}>
+                {wp.risk.toFixed(2)} - {getRiskLabel(wp.risk)}
+              </div>
             </div>
-            <div className={`px-4 py-2 rounded-lg font-bold border ${getRiskColor(wp.risk)}`}>
-              {wp.risk.toFixed(2)} - {getRiskLabel(wp.risk)}
-            </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="text-gray-600">No waypoint data available</p>
+        )}
       </div>
     </div>
   );
