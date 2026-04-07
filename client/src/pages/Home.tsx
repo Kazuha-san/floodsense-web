@@ -14,15 +14,48 @@ export default function Home() {
     setFormData({ from, to });
     setLoading(true);
     
-    // TODO: Call your notebook backend here
-    // const response = await fetch('/api/analyze-route', { 
-    //   method: 'POST', 
-    //   body: JSON.stringify({ from, to }) 
-    // });
-    // const data = await response.json();
-    // setRouteData(data);
+    try {
+      // TODO: Replace this with your actual backend URL
+      // Example: const response = await fetch('https://your-colab-backend.com/api/analyze-route', { 
+      //   method: 'POST', 
+      //   body: JSON.stringify({ from, to }) 
+      // });
+      // const data = await response.json();
+      
+      // For now, using mock data
+      const mockData = {
+        originalRoute: {
+          path: ['MP Nagar', 'New Market', 'Kolar', 'Airport'],
+          distance: '16.2 km',
+          time: '28 min',
+          avgRisk: 4.2,
+        },
+        recommendedRoute: {
+          path: ['MP Nagar', 'VIP Road', 'BHEL', 'Airport'],
+          distance: '18.5 km',
+          time: '32 min',
+          avgRisk: 1.8,
+        },
+        waypoints: [
+          { location: 'MP Nagar', risk: 2.93 },
+          { location: 'New Market', risk: 3.40 },
+          { location: 'Kolar', risk: 3.82 },
+          { location: 'Airport', risk: 1.65 },
+        ],
+        alert: {
+          level: 'HIGH',
+          message: 'Heavy rain incoming. Predicted HIGH congestion risk on standard route in the next 60 minutes. FloodSense reroutes you via safer corridors.',
+        },
+      };
+      
+      setRouteData(mockData);
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error analyzing route. Please try again.');
+    } finally {
+      setLoading(false);
+    }
     
-    setLoading(false);
     setStep('original');
   };
 

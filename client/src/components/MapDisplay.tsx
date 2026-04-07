@@ -9,13 +9,13 @@ interface MapDisplayProps {
 
 export default function MapDisplay({ from, to, routeType, routeData }: MapDisplayProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<google.maps.Map | null>(null);
+  const mapInstance = useRef<any>(null);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !window.google) return;
 
     // Initialize map
-    const map = new google.maps.Map(mapRef.current, {
+    const map = new window.google.maps.Map(mapRef.current, {
       zoom: 13,
       center: { lat: 23.1815, lng: 79.9864 }, // Bhopal center
       mapTypeControl: false,
@@ -25,14 +25,14 @@ export default function MapDisplay({ from, to, routeType, routeData }: MapDispla
     mapInstance.current = map;
 
     // Add markers for from and to locations
-    new google.maps.Marker({
+    new window.google.maps.Marker({
       position: { lat: 23.1815, lng: 79.9864 },
       map: map,
       title: from,
       icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
     });
 
-    new google.maps.Marker({
+    new window.google.maps.Marker({
       position: { lat: 23.2, lng: 80.0 },
       map: map,
       title: to,
@@ -46,7 +46,11 @@ export default function MapDisplay({ from, to, routeType, routeData }: MapDispla
   return (
     <div
       ref={mapRef}
-      className="w-full h-96 rounded-lg border border-cyan-200 shadow-sm bg-gray-100"
-    />
+      className="w-full h-96 rounded-lg border border-cyan-200 shadow-sm bg-gray-100 flex items-center justify-center"
+    >
+      {!window.google && (
+        <p className="text-gray-600">Loading map...</p>
+      )}
+    </div>
   );
 }
