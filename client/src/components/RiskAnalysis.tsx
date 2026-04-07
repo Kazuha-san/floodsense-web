@@ -19,20 +19,15 @@ export default function RiskAnalysis({ data }: RiskAnalysisProps) {
     return 'CLEAR';
   };
 
-  // Handle both mock data and real backend data
-  let waypoints: any[] = [];
-
-  // Check if data has risk_60min (real backend format)
-  if (data.risk_60min) {
-    waypoints = Object.entries(data.risk_60min).map(([location, risk]: any) => ({
-      location,
-      risk: typeof risk === 'object' ? risk.risk_60min : risk,
-    }));
-  } 
-  // Fallback to mock data format
-  else if (data.waypoints) {
-    waypoints = data.waypoints;
+  if (!data || !data.risk_60min) {
+    return null;
   }
+
+  // Convert risk_60min object to array of waypoints
+  const waypoints = Object.entries(data.risk_60min).map(([location, risk]: any) => ({
+    location,
+    risk: typeof risk === 'number' ? risk : parseFloat(risk),
+  }));
 
   return (
     <div className="bg-white rounded-lg border border-cyan-200 p-6 shadow-sm">
