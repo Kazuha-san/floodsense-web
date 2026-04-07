@@ -11,53 +11,35 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (from: string, to: string) => {
-    setFormData({ from, to });
-    setLoading(true);
-    
-    try {
-      // TODO: Replace this with your actual backend URL
-      // Example: const response = await fetch('https://your-colab-backend.com/api/analyze-route', { 
-      //   method: 'POST', 
-      //   body: JSON.stringify({ from, to }) 
-      // });
-      // const data = await response.json();
-      
-      // For now, using mock data
-      const mockData = {
-        originalRoute: {
-          path: ['MP Nagar', 'New Market', 'Kolar', 'Airport'],
-          distance: '16.2 km',
-          time: '28 min',
-          avgRisk: 4.2,
-        },
-        recommendedRoute: {
-          path: ['MP Nagar', 'VIP Road', 'BHEL', 'Airport'],
-          distance: '18.5 km',
-          time: '32 min',
-          avgRisk: 1.8,
-        },
-        waypoints: [
-          { location: 'MP Nagar', risk: 2.93 },
-          { location: 'New Market', risk: 3.40 },
-          { location: 'Kolar', risk: 3.82 },
-          { location: 'Airport', risk: 1.65 },
-        ],
-        alert: {
-          level: 'HIGH',
-          message: 'Heavy rain incoming. Predicted HIGH congestion risk on standard route in the next 60 minutes. FloodSense reroutes you via safer corridors.',
-        },
-      };
-      
-      setRouteData(mockData);
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error analyzing route. Please try again.');
-    } finally {
-      setLoading(false);
+  setFormData({ from, to });
+  setLoading(true);
+
+  try {
+    const response = await fetch(
+      'https://lorelai-slothful-martina.ngrok-free.dev/api/analyze-route',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from, to }),
+      }
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Backend error ${response.status}: ${text}`);
     }
-    
-    setStep('original');
-  };
+
+    const data = await response.json();
+    setRouteData(data);
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error analyzing route. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+
+  setStep('original');
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-cyan-50 to-white">
