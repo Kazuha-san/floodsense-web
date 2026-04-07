@@ -1,115 +1,117 @@
-import { useEffect, useRef, useState } from 'react';
-import Navbar from '@/components/Navbar';
-import ProblemSection from '@/components/sections/ProblemSection';
-import HowItWorksSection from '@/components/sections/HowItWorksSection';
-import ModelsSection from '@/components/sections/ModelsSection';
-import DemoSection from '@/components/sections/DemoSection';
-import TeamSection from '@/components/sections/TeamSection';
-import WaveDivider from '@/components/WaveDivider';
+import { useState } from 'react';
+import LocationForm from '@/components/LocationForm';
+import MapDisplay from '@/components/MapDisplay';
+import RiskAnalysis from '@/components/RiskAnalysis';
+import AlertMessage from '@/components/AlertMessage';
 
 export default function Home() {
-  const [activeSection, setActiveSection] = useState('problem');
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  const [step, setStep] = useState<'input' | 'original' | 'analysis' | 'recommended'>('input');
+  const [formData, setFormData] = useState({ from: '', to: '' });
+  const [routeData, setRouteData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Create Intersection Observer for scroll-triggered animations and active section tracking
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Add animation class
-            entry.target.classList.add('animate-fade-in-up');
-            
-            // Update active section based on which section is most visible
-            const sectionId = entry.target.id;
-            if (sectionId) {
-              setActiveSection(sectionId);
-            }
-          }
-        });
-      },
-      {
-        threshold: 0.1,
-        rootMargin: '-50px 0px -50px 0px',
-      }
-    );
-
-    // Observe all sections
-    const sections = document.querySelectorAll('[data-section]');
-    sections.forEach((section) => {
-      observerRef.current?.observe(section);
-    });
-
-    return () => {
-      observerRef.current?.disconnect();
-    };
-  }, []);
-
-  const handleNavClick = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setActiveSection(sectionId);
-    }
+  const handleSubmit = async (from: string, to: string) => {
+    setFormData({ from, to });
+    setLoading(true);
+    
+    // TODO: Call your notebook backend here
+    // const response = await fetch('/api/analyze-route', { 
+    //   method: 'POST', 
+    //   body: JSON.stringify({ from, to }) 
+    // });
+    // const data = await response.json();
+    // setRouteData(data);
+    
+    setLoading(false);
+    setStep('original');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f0f9fc] via-[#e0f7ff] to-[#f0f9fc]">
-      <Navbar activeSection={activeSection} onNavClick={handleNavClick} />
+    <div className="min-h-screen bg-gradient-to-b from-cyan-50 to-white">
+      {/* Header */}
+      <div className="bg-white border-b border-cyan-200 sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-cyan-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold">FS</span>
+            </div>
+            <h1 className="text-2xl font-bold text-teal-700">FloodSense</h1>
+          </div>
+        </div>
+      </div>
 
-      <main className="pt-20">
-        {/* Problem Section */}
-        <section
-          id="problem"
-          data-section
-          className="min-h-screen flex items-center justify-center py-20 px-4 opacity-0"
-        >
-          <ProblemSection />
-        </section>
+      {/* Main Content */}
+      <main className="max-w-4xl mx-auto px-4 py-12">
+        {/* Step 1: Location Input */}
+        {step === 'input' && (
+          <div className="space-y-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">Smart Flood Rerouting</h2>
+              <p className="text-gray-600">Enter your start and end location to get a safe route during heavy rain</p>
+            </div>
+            <LocationForm onSubmit={handleSubmit} loading={loading} />
+          </div>
+        )}
 
-        <WaveDivider />
+        {/* Step 2: Original Route Map */}
+        {step === 'original' && formData.from && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Original Route</h2>
+              <button
+                onClick={() => setStep('input')}
+                className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+              >
+                ← Change Route
+              </button>
+            </div>
+            <MapDisplay 
+              from={formData.from} 
+              to={formData.to}
+              routeType="original"
+            />
+            <button
+              onClick={() => setStep('analysis')}
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-lg transition-colors"
+            >
+              Analyze Risk
+            </button>
+          </div>
+        )}
 
-        {/* How It Works Section */}
-        <section
-          id="how-it-works"
-          data-section
-          className="min-h-screen flex items-center justify-center py-20 px-4 opacity-0 bg-white"
-        >
-          <HowItWorksSection />
-        </section>
+        {/* Step 3: Risk Analysis */}
+        {step === 'analysis' && routeData && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Risk Analysis</h2>
+            <RiskAnalysis data={routeData} />
+            <AlertMessage data={routeData} />
+            <button
+              onClick={() => setStep('recommended')}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors"
+            >
+              View Recommended Route
+            </button>
+          </div>
+        )}
 
-        <WaveDivider flip />
-
-        {/* Models Section */}
-        <section
-          id="models"
-          data-section
-          className="min-h-screen flex items-center justify-center py-20 px-4 opacity-0"
-        >
-          <ModelsSection />
-        </section>
-
-        <WaveDivider />
-
-        {/* Demo Section */}
-        <section
-          id="demo"
-          data-section
-          className="min-h-screen flex items-center justify-center py-20 px-4 opacity-0 bg-white"
-        >
-          <DemoSection />
-        </section>
-
-        <WaveDivider flip />
-
-        {/* Team Section */}
-        <section
-          id="team"
-          data-section
-          className="min-h-screen flex items-center justify-center py-20 px-4 opacity-0"
-        >
-          <TeamSection />
-        </section>
+        {/* Step 4: Recommended Route Map */}
+        {step === 'recommended' && routeData && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Recommended Safe Route</h2>
+            <MapDisplay 
+              from={formData.from} 
+              to={formData.to}
+              routeType="recommended"
+              routeData={routeData}
+            />
+            <button
+              onClick={() => setStep('input')}
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-lg transition-colors"
+            >
+              Plan Another Route
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
